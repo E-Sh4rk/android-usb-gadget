@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "net.tjado.usbgadget"
-        minSdkVersion 23
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 4
         versionName "0.4"
@@ -28,6 +28,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'net.tjado.usbgadget'
 
 }
 
