@@ -78,6 +78,7 @@ class GadgetShellApi {
             var gadget = GadgetObject()
 
             try {
+                var controller:String? = null
                 bufReader.forEachLine {  line ->
                     if (line == "=============") {
                         data.add(gadget)
@@ -87,12 +88,21 @@ class GadgetShellApi {
 
                     val parts = line.split("=".toRegex(), 2).toTypedArray()
 
+                    if (parts[0] == "UDC" && parts[1] != "" && parts[1] != "not set") {
+                        controller = parts[1]
+                    }
+
                     if (parts[0] == "FUNCTIONS") {
                         gadget.addFunction(parts[1])
                     } else if (parts[0] == "FUNCTIONS_ACTIVE") {
                         gadget.addActiveFunction(parts[1])
                     } else {
                         gadget.setValue(parts[0].lowercase(Locale.getDefault()), parts[1])
+                    }
+                }
+                if (controller != null) {
+                    for (gadget in data) {
+                        gadget.setValue("controller", controller as String);
                     }
                 }
             } catch (e: Exception) {
@@ -105,7 +115,7 @@ class GadgetShellApi {
         }
     }
 
-    fun activate(gadgetPath: String?, onRootTaskFinished: OnRootTaskListener?): Boolean {
+    fun activate(controller: String?, gadgetPath: String?, onRootTaskFinished: OnRootTaskListener?): Boolean {
         if (!isValidGadgetPath(gadgetPath)) {
             return false
         }
@@ -114,7 +124,10 @@ class GadgetShellApi {
         val cmdDeactivateUsbAll =
             "find /config/usb_gadget/  -name UDC -type f -exec sh -c 'echo \"\" >  \"$@\"' _ {} \\;\n"
         // activate specific one
-        val cmdActivateUsb = String.format("getprop sys.usb.controller > %s/UDC\n", gadgetPath)
+        val cmdActivateUsb = if (controller == null || controller == "" || controller == "not set")
+            String.format("getprop sys.usb.controller > %s/UDC\n", gadgetPath)
+        else
+            String.format("echo \"%s\" > %s/UDC\n", controller, gadgetPath)
         val commands = arrayOf(cmdDeactivateUsbAll, cmdActivateUsb)
         return this.exec(commands, onRootTaskFinished)
     }
@@ -131,6 +144,7 @@ class GadgetShellApi {
         gadgetPath: String?,
         gadgetConfigPath: String?,
         function: String?,
+        controller: String?,
         activateGadget: Boolean
     ): Boolean {
         if (!isValidGadgetPath(gadgetPath) || !isValidGadgetPath(gadgetConfigPath)) {
@@ -139,7 +153,7 @@ class GadgetShellApi {
         var onRootTaskFinished: OnRootTaskListener? = null
         if (activateGadget) {
             onRootTaskFinished =
-                OnRootTaskListener { activate(gadgetPath, null) }
+                OnRootTaskListener { activate(controller, gadgetPath, null) }
         }
         val command = String.format(
             "ln -s %s/functions/%3\$s %s/%3\$s\n",
@@ -154,6 +168,7 @@ class GadgetShellApi {
         gadgetPath: String?,
         gadgetConfigPath: String?,
         function: String?,
+        controller: String?,
         activateGadget: Boolean
     ): Boolean {
         if (!isValidGadgetPath(gadgetPath) || !isValidGadgetPath(gadgetConfigPath)) {
@@ -162,7 +177,7 @@ class GadgetShellApi {
         var onRootTaskFinished: OnRootTaskListener? = null
         if (activateGadget) {
             onRootTaskFinished =
-                OnRootTaskListener { activate(gadgetPath, null) }
+                OnRootTaskListener { activate(controller, gadgetPath, null) }
         }
         val command = String.format("rm %1\$s/%2\$s\n", gadgetConfigPath, function)
         return this.exec(command, onRootTaskFinished)

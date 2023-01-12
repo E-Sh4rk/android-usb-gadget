@@ -51,7 +51,8 @@ class GadgetObject {
         }
 
     fun activate(onRootTaskFinished: OnRootTaskListener? = null): Boolean {
-        return shellApi.activate(getValue("gadget_path"), onRootTaskFinished)
+        return shellApi.activate(getValue("controller"),
+            getValue("gadget_path"), onRootTaskFinished)
     }
 
     fun deactivate(onRootTaskFinished: OnRootTaskListener? = null): Boolean {
@@ -59,10 +60,12 @@ class GadgetObject {
     }
 
     fun activateFunction(function: String, reactivateGadget: Boolean): Boolean {
+        val controller = getValue("controller")
         val gadgetPath = getValue("gadget_path")
         val gadgetConfigPath = getValue("config_path")
 
         val status = shellApi.activateFunction(
+            controller,
             gadgetPath,
             gadgetConfigPath,
             function,
@@ -78,10 +81,12 @@ class GadgetObject {
     }
 
     fun deactivateFunction(function: String, reactivateGadget: Boolean): Boolean {
+        val controller = getValue("controller")
         val gadgetPath = getValue("gadget_path")
         val gadgetConfigPath = getValue("config_path")
 
         val status = shellApi.deactivateFunction(
+            controller,
             gadgetPath,
             gadgetConfigPath,
             function,

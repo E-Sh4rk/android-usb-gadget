@@ -30,7 +30,7 @@ class BootConfiguration : BroadcastReceiver() {
                     shellApi.exec(assets.getProfileGadget(profile)!!) { response ->
                         if (response != null && response.first == true && profile == activeGadget) {
                             Log.i(TAG, "Activating gadget $profile")
-                            shellApi.activate("/config/usb_gadget/${profile}", null)
+                            shellApi.activate(null, "/config/usb_gadget/${profile}", null)
                         } else if (response != null && response.first == false) {
                             Log.e(TAG, "Activation failed: ${response.second}")
                         }
